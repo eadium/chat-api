@@ -9,9 +9,32 @@ async function addChat(req, reply) {
         reply.code(400).send({
             message: 'Invalid request'
         });
+        return;
     }
 
-    db.one(`INSERT INTO chats (name) VALUES ($1) RETURNING id`, name)
+    let userIDsql = '';
+    const usersArray = [];
+    for (let i = 0; i < users.length; i++) {
+        usersArray.push(parseInt(users[i]));
+        userIDsql += ` id=$${i+1} OR`;
+    }
+    userIDsql = userIDsql.slice(0, -3);
+
+    const preSql = `SELECT username FROM users WHERE ${userIDsql}`
+    console.log(preSql, usersArray, users);
+
+    db.any({
+        text: preSql,
+        values: usersArray
+    })
+    .then((data) => {
+        if (data.length != users.length) {
+            reply.code(404).send({
+                message: "User not found"
+            })
+            return;
+        }
+        db.one(`INSERT INTO chats (name) VALUES ($1) RETURNING id`, name)
         .then((data) => {
             const args = [];
             const chat_id = parseInt(data.id)
@@ -55,8 +78,11 @@ async function addChat(req, reply) {
             } else {
                 reply.code(500).send(err);
             }
-        }
-    );
+        });
+    })
+    .catch((err) => {
+        reply.code(500).send(err);
+    });
 }
 
 async function getUserChat(req, reply) {
@@ -65,6 +91,7 @@ async function getUserChat(req, reply) {
         reply.code(400).send({
             message: 'Invalid request'
         });
+        return;
     }
 
     db.any({
@@ -74,10 +101,24 @@ async function getUserChat(req, reply) {
         values: username
     })
     .then((data) => {
+
         if (data.length == 0) {
-            reply.code(404).send({
-                message: 'User has no chats yet'
+            db.one('SELECT id FROM users WHERE username=$1', username)
+            .then(() => {
+                reply.code(200).send({
+                    message: 'User has no chats yet'
+                })
             })
+            .catch((err) => {
+                if (err.code === dbConfig.pgp.errors.queryResultErrorCode.noData) {
+                    reply.code(404).send({
+                        message: 'Invalid chat name'
+                    });
+                } else {
+                    reply.code(500).send(err);
+                }
+            })
+            return;
         }
 
         let chatIDsql = '';
@@ -89,7 +130,6 @@ async function getUserChat(req, reply) {
 
         // hack: we can use OR as a part of [OR]DER BY
         const sql = `SELECT * FROM chats WHERE${chatIDsql}DER BY created DESC`
-        console.log(sql, args);
 
         db.any({
             text: sql,

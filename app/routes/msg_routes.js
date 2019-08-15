@@ -11,9 +11,10 @@ async function addMessage(req, reply) {
         reply.code(400).send({
             message: 'Invalid request'
         });
+        return;
     }
 
-    const args = [parseInt(chatID), parseInt(userID), text]
+    const args = [parseInt(chatID), parseInt(userID), text];
     const sql = `INSERT INTO messages (chat_id, author_id, text) 
                     VALUES (
                     (SELECT chat_id FROM user_chat WHERE chat_id=$1 AND user_id=$2),
@@ -31,9 +32,18 @@ async function addMessage(req, reply) {
                 message: 'Invalid user or chat id'
             });
         } else if (err.code === dbConfig.notNullErorr) {
-            reply.code(403).send({
-                message: 'User has no access to this chat'
+            db.one('SELECT chat_id FROM chats WHERE chat_id=$1', chatID)
+            .then(() => {
+                reply.code(403).send({
+                    message: 'User has no access to this chat'
+                });
+            })
+            .catch(() => {
+                reply.code(404).send({
+                    message: 'Invalid chat id'
+                });
             });
+            
         } else {
             reply.code(500).send(err);
         }
@@ -46,6 +56,7 @@ async function getChatMessages(req, reply) {
         reply.code(400).send({
             message: 'Invalid request'
         });
+        return;
     }
 
     const sql = `SELECT * FROM messages WHERE chat_id=(
@@ -73,6 +84,7 @@ async function getChatMessages(req, reply) {
                     reply.code(500).send(err);
                 }
             })
+            return;
         }
         reply.code(200).send(data);
     })

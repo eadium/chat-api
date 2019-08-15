@@ -6,6 +6,7 @@ async function addUser(req, reply) {
     const username = req.body.username ? req.body.username : null;
     if (!username) {
         reply.code(400).send();
+        return;
     }
 
     db.one(`INSERT INTO users (username) VALUES ($1) RETURNING id`, username)
