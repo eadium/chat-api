@@ -1,0 +1,32 @@
+{
+  "name": "chat-api",
+  "version": "1.0.0",
+  "description": "Chat API server",
+  "main": "index.js",
+  "repository": {
+    "github": "https://github.com/eadium/chat-api.git"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon \"npm start\""
+  },
+  "dependencies": {
+    "bluebird": "^3.5.3",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "fastify": "^1.13.3",
+    "morgan": "^1.9.1",
+    "pg": "^7.7.1",
+    "pg-pool": "^2.0.5",
+    "pg-promise": "^8.5.4"
+  },
+  "devDependencies": {
+    "eslint": "^5.11.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "nodemon": "^1.18.9"
+  },
+  "author": "eadium",
+  "license": "ISC"
+}
