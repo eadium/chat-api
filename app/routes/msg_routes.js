@@ -56,8 +56,9 @@ async function addMessage(req, reply) {
 }
 
 async function getChatMessages(req, reply) {
-    const chatID = req.body.chat ? req.body.chat : null;
-    if (!chatID || typeof(chatID) != "string") {
+    let chatID = req.body.chat ? req.body.chat : null;
+    
+    if (!chatID || !Number.isInteger(parseInt(chatID))) {
         // request should contain chat name
         reply.code(400).send({
             message: 'Invalid request'
@@ -65,10 +66,10 @@ async function getChatMessages(req, reply) {
         return;
     }
 
+    chatID = parseInt(chatID);
     const sql = `
         SELECT * FROM messages WHERE chat_id=$1 ORDER BY created
     `
-
     db.any({
         text: sql,
         values: chatID

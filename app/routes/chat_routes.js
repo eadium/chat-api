@@ -86,10 +86,10 @@ async function addChat(req, reply) {
 }
 
 async function getUserChat(req, reply) {
-    const username = req.body.user ? req.body.user : null;
+    let userID = req.body.user ? req.body.user : null;
 
-    //request should contain "username" field
-    if (!username) {
+    //request should contain "user" field
+    if (!userID || !Number.isInteger(parseInt(userID))) {
         reply.code(400).send({
             message: 'Invalid request'
         });
@@ -98,16 +98,14 @@ async function getUserChat(req, reply) {
 
     // check if user exists
     db.any({
-        text: `SELECT chat_id FROM user_chat WHERE user_id=(
-            SELECT id FROM users WHERE username=$1
-        )`,
-        values: username
+        text: `SELECT chat_id FROM user_chat WHERE user_id=$1`,
+        values: userID
     })
     .then((data) => {
         // in case of empty row we need to understand
         // if user has no chats or user does not exist
         if (data.length == 0) {
-            db.one('SELECT id FROM users WHERE username=$1', username)
+            db.one('SELECT id FROM users WHERE username=$1', userID)
             .then(() => {
                 reply.code(200).send({
                     message: 'User has no chats yet'
@@ -140,7 +138,7 @@ async function getUserChat(req, reply) {
         `
         db.any({
             text: sql,
-            values: username
+            values: userID
         })
         .then((data) => {
             reply.code(200).send(data);
