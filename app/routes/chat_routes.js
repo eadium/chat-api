@@ -48,7 +48,7 @@ async function addChat(req, reply) {
 
             const sql = `INSERT INTO user_chat (chat_id, user_id) VALUES ${batch}`;
             console.log(sql, args);
-            
+
             db.none({
                 text: sql,
                 values: args,
@@ -121,19 +121,20 @@ async function getUserChat(req, reply) {
             return;
         }
 
-        let chatIDsql = '';
-        const args = [];
-        for (let i = 0; i < data.length; i++) {
-            chatIDsql += ` id=$${i+1} OR`;
-            args.push(Object.values(data[i])[0]);
-        }
-
-        // hack: we can use OR as a part of [OR]DER BY
-        const sql = `SELECT * FROM chats WHERE${chatIDsql}DER BY created DESC`
-
+        const sql = `
+            SELECT id, name, created FROM user_chat
+            JOIN chats ON chats.id = user_chat.chat_id
+            LEFT JOIN (
+                SELECT chat_id, max(created) AS last_msg_cr 
+                    FROM messages GROUP BY chat_id
+                )
+            last_msg ON last_msg.chat_id = chats.id
+            WHERE user_id=(SELECT id FROM users WHERE username=$1)
+            ORDER BY last_msg_cr, created DESC
+        `
         db.any({
             text: sql,
-            values: args
+            values: username
         })
         .then((data) => {
             reply.code(200).send(data);

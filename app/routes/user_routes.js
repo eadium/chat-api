@@ -5,7 +5,9 @@ const { db } = dbConfig;
 async function addUser(req, reply) {
     const username = req.body.username ? req.body.username : null;
     if (!username) {
-        reply.code(400).send();
+        reply.code(400).send({
+            message: 'Invalid request'
+        });
         return;
     }
 
