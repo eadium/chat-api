@@ -4,6 +4,8 @@ const { db } = dbConfig;
 
 async function addUser(req, reply) {
     const username = req.body.username ? req.body.username : null;
+    
+    //request should contain "username" field
     if (!username) {
         reply.code(400).send({
             message: 'Invalid request'
@@ -16,6 +18,7 @@ async function addUser(req, reply) {
             reply.code(200).send(data);
         })
         .catch((err) => {
+            // user exists
             if (err.code === dbConfig.dataConflict) {
                 reply.code(409).send({
                     message: 'Username is occupied'

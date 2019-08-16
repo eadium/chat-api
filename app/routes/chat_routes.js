@@ -87,6 +87,8 @@ async function addChat(req, reply) {
 
 async function getUserChat(req, reply) {
     const username = req.body.user ? req.body.user : null;
+
+    //request should contain "username" field
     if (!username) {
         reply.code(400).send({
             message: 'Invalid request'
@@ -94,6 +96,7 @@ async function getUserChat(req, reply) {
         return;
     }
 
+    // check if user exists
     db.any({
         text: `SELECT chat_id FROM user_chat WHERE user_id=(
             SELECT id FROM users WHERE username=$1
@@ -101,7 +104,8 @@ async function getUserChat(req, reply) {
         values: username
     })
     .then((data) => {
-
+        // in case of empty row we need to understand
+        // if user has no chats or user does not exist
         if (data.length == 0) {
             db.one('SELECT id FROM users WHERE username=$1', username)
             .then(() => {
@@ -121,6 +125,8 @@ async function getUserChat(req, reply) {
             return;
         }
 
+        // empty chats are sorted by their creation date
+        // other chats -- by the time of the last posted message
         const sql = `
             SELECT id, name, created FROM user_chat
             JOIN chats ON chats.id = user_chat.chat_id
@@ -129,7 +135,7 @@ async function getUserChat(req, reply) {
                     FROM messages GROUP BY chat_id
                 )
             last_msg ON last_msg.chat_id = chats.id
-            WHERE user_id=(SELECT id FROM users WHERE username=$1)
+            WHERE user_id=$1
             ORDER BY last_msg_cr, created DESC
         `
         db.any({
