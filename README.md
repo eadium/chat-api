@@ -98,7 +98,7 @@ Used to create a new chat with selected users.
 ```json
 {
     "name": "<chat_name>",
-    "users": [<array of user ID's>]
+    "users": ["<array of user ID's>"]
 }
 ```
 
@@ -264,19 +264,19 @@ Get user's chat list. Chats with newer messages are the first. Empty chats are s
 ```json
 [
     {
-        "id": 23,
-        "name": "chat10",
-        "created": "2019-08-15T19:48:22.198Z"
+        "id": 1,
+        "name": "chat1",
+        "created": "Sat Aug 17 2019 22:31:12 GMT+0300 (Moscow Standard Time)"
     },
     {
-        "id": 21,
-        "name": "chat9",
-        "created": "2019-08-15T19:01:32.020Z"
+        "id": 5,
+        "name": "chat3",
+        "created": "Sat Aug 17 2019 22:37:35 GMT+0300 (Moscow Standard Time)"
     },
     {
-        "id": 19,
-        "name": "chat8",
-        "created": "2019-08-15T19:01:20.765Z"
+        "id": 3,
+        "name": "chat2",
+        "created": "Sat Aug 17 2019 22:37:28 GMT+0300 (Moscow Standard Time)"
     }
 ]
 ```
@@ -350,25 +350,25 @@ Get all messages from the selected chat. The earliest messages in the chat come 
 ```json
 [
     {
-        "id": 21,
-        "chat_id": 26,
+        "id": 1,
+        "chat_id": 1,
         "author_id": 2,
         "text": "hi",
-        "created": "2019-08-16T10:36:41.626Z"
+        "created": "Sat Aug 17 2019 22:41:06 GMT+0300 (Moscow Standard Time)"
     },
     {
-        "id": 25,
-        "chat_id": 26,
-        "author_id": 3,
-        "text": "good morning",
-        "created": "2019-08-16T10:41:21.438Z"
-    },
-    {
-        "id": 26,
-        "chat_id": 26,
+        "id": 2,
+        "chat_id": 1,
         "author_id": 2,
+        "text": "good morning",
+        "created": "Sat Aug 17 2019 22:41:13 GMT+0300 (Moscow Standard Time)"
+    },
+    {
+        "id": 3,
+        "chat_id": 1,
+        "author_id": 1,
         "text": "what a nice day today!",
-        "created": "2019-08-16T10:42:12.561Z"
+        "created": "Sat Aug 17 2019 22:41:28 GMT+0300 (Moscow Standard Time)"
     }
 ]
 ```
