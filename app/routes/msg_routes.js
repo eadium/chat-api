@@ -1,4 +1,5 @@
 const dbConfig = require('../../database/db');
+const { isInteger } = require('../util/intValidator');
 
 const { db } = dbConfig;
 
@@ -8,14 +9,14 @@ async function addMessage(req, reply) {
     const text = req.body.text ? req.body.text : null;
     
     // request should contain "chat", "author" and "text" 
-    if (!chatID || !userID || !text) {
+    if (!isInteger(chatID) || !isInteger(userID) || typeof(text) != "string") {
         reply.code(400).send({
             message: 'Invalid request'
         });
         return;
     }
 
-    const args = [parseInt(chatID), parseInt(userID), text];
+    const args = [parseInt(chatID, 10), parseInt(userID, 10), text];
     const sql = `
         INSERT INTO messages (chat_id, author_id, text) 
         VALUES (
@@ -58,15 +59,15 @@ async function addMessage(req, reply) {
 async function getChatMessages(req, reply) {
     let chatID = req.body.chat ? req.body.chat : null;
     
-    if (!chatID || !Number.isInteger(parseInt(chatID))) {
-        // request should contain chat name
+    if (!isInteger(chatID)) {
+        // request should contain chat id
         reply.code(400).send({
             message: 'Invalid request'
         });
         return;
     }
 
-    chatID = parseInt(chatID);
+    chatID = parseInt(chatID, 10);
     const sql = `
         SELECT * FROM messages WHERE chat_id=$1 ORDER BY created
     `
@@ -76,7 +77,7 @@ async function getChatMessages(req, reply) {
     })
     .then((data) => {
         if (data.length == 0) {
-            db.one('SELECT id FROM chats WHERE name=$1', chatID)
+            db.one('SELECT id FROM chats WHERE id=$1', chatID)
             .then(() => {
                 reply.code(200).send({
                     message: 'Chat is empty'
@@ -93,6 +94,11 @@ async function getChatMessages(req, reply) {
                 }
             })
             return;
+        }
+
+        // convert UTC time to local time
+        for (let i = 0; i < data.length; i++) {
+            data[i].created = new Date(data[i].created).toString();
         }
         reply.code(200).send(data);
     })

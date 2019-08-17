@@ -1,13 +1,25 @@
 const dbConfig = require('../../database/db');
+const { isInteger } = require('../util/intValidator');
 
 const { db } = dbConfig;
 
 async function addChat(req, reply) {
     const name = req.body.name ? req.body.name : null;
-    const users = req.body.users ? req.body.users : null;
-    if (!name || !users || !Array.isArray(users)) {
+    let users = req.body.users ? req.body.users : null;
+
+    if (!name || !Array.isArray(users) || users.length < 2 ||
+    typeof(name) !== "string" ) {
         reply.code(400).send({
             message: 'Invalid request'
+        });
+        return;
+    }
+
+    // leave only string values
+    users = users.filter(e => isInteger(e) && typeof e === 'string' && e !== '');
+    if (users.length < 2) {
+        reply.code(400).send({
+            message: 'Users array is invalid'
         });
         return;
     }
@@ -15,7 +27,7 @@ async function addChat(req, reply) {
     let userIDsql = '';
     const usersArray = [];
     for (let i = 0; i < users.length; i++) {
-        usersArray.push(parseInt(users[i]));
+        usersArray.push(parseInt(users[i]), 10);
         userIDsql += ` id=$${i+1} OR`;
     }
     userIDsql = userIDsql.slice(0, -3);
@@ -28,7 +40,7 @@ async function addChat(req, reply) {
         values: usersArray
     })
     .then((data) => {
-        if (data.length != users.length) {
+        if (data.length !== users.length) {
             reply.code(404).send({
                 message: "User not found"
             })
@@ -37,11 +49,11 @@ async function addChat(req, reply) {
         db.one(`INSERT INTO chats (name) VALUES ($1) RETURNING id`, name)
         .then((data) => {
             const args = [];
-            const chat_id = parseInt(data.id)
+            const chat_id = parseInt(data.id, 10)
             let batch = "";
             const len = users.length
             for (let i = 0; i < len; i++) {
-                args.push(parseInt(users[i]));
+                args.push(parseInt(users[i]), 10);
                 batch += `(${chat_id}, $${i+1}),`
             }
             batch = batch.slice(0, -1);
@@ -89,7 +101,7 @@ async function getUserChat(req, reply) {
     let userID = req.body.user ? req.body.user : null;
 
     //request should contain "user" field
-    if (!userID || !Number.isInteger(parseInt(userID))) {
+    if (!isInteger(userID)) {
         reply.code(400).send({
             message: 'Invalid request'
         });
@@ -114,7 +126,7 @@ async function getUserChat(req, reply) {
             .catch((err) => {
                 if (err.code === dbConfig.pgp.errors.queryResultErrorCode.noData) {
                     reply.code(404).send({
-                        message: 'Invalid chat name'
+                        message: 'Invalid user name'
                     });
                 } else {
                     reply.code(500).send(err);
@@ -126,7 +138,7 @@ async function getUserChat(req, reply) {
         // empty chats are sorted by their creation date
         // other chats -- by the time of the last posted message
         const sql = `
-            SELECT id, name, created FROM user_chat
+        SELECT id, name, created FROM user_chat
             JOIN chats ON chats.id = user_chat.chat_id
             LEFT JOIN (
                 SELECT chat_id, max(created) AS last_msg_cr 
@@ -134,13 +146,18 @@ async function getUserChat(req, reply) {
                 )
             last_msg ON last_msg.chat_id = chats.id
             WHERE user_id=$1
-            ORDER BY last_msg_cr, created DESC
+            ORDER BY last_msg_cr DESC NULLS LAST, created DESC
         `
         db.any({
             text: sql,
             values: userID
         })
         .then((data) => {
+            // convert UTC time to local time
+            for (let i = 0; i < data.length; i++) {
+                data[i].created = new Date(data[i].created).toString();
+            }
+
             reply.code(200).send(data);
         })
         .catch((err) => {

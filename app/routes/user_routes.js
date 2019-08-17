@@ -6,7 +6,7 @@ async function addUser(req, reply) {
     const username = req.body.username ? req.body.username : null;
     
     //request should contain "username" field
-    if (!username) {
+    if (!username || typeof(username) != "string" ) {
         reply.code(400).send({
             message: 'Invalid request'
         });
