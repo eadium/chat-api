@@ -19,6 +19,11 @@ cd chat-api
 docker-compose up
 ```
 
+## Testing
+This package includes basic bash tests.
+
+You can run with: `npm test` or simply `./tests.sh`
+
 # API guide
 All requests require no auth.
 
