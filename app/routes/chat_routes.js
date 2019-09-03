@@ -27,7 +27,7 @@ async function addChat(req, reply) {
     let userIDsql = '';
     const usersArray = [];
     for (let i = 0; i < users.length; i++) {
-        usersArray.push(parseInt(users[i]), 10);
+        usersArray.push(parseInt(users[i], 10));
         userIDsql += ` id=$${i+1} OR`;
     }
     userIDsql = userIDsql.slice(0, -3);
@@ -53,7 +53,7 @@ async function addChat(req, reply) {
             let batch = "";
             const len = users.length
             for (let i = 0; i < len; i++) {
-                args.push(parseInt(users[i]), 10);
+                args.push(parseInt(users[i], 10));
                 batch += `(${chat_id}, $${i+1}),`
             }
             batch = batch.slice(0, -1);

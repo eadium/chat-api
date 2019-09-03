@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS chats (
     id          SERIAL PRIMARY KEY,
-    name        CITEXT NOT NULL UNIQUE,
+    name        CITEXT NOT NULL,
     created     TIMESTAMPTZ DEFAULT now()
 );
 

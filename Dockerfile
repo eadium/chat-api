@@ -3,6 +3,7 @@ FROM ubuntu:18.04
 LABEL Andryukhov Artem
 
 ENV DEBIAN_FRONTEND 'noninteractive'
+ENV PGVER 10
 RUN echo 'Europe/Moscow' > '/etc/timezone'
 
 RUN apt-get -y update
@@ -12,7 +13,6 @@ RUN apt-get install -y  gnupg2
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN apt-get -y update
 RUN apt-get install -y sysstat
-ENV PGVER 10
 RUN apt-get install -y postgresql-10
 RUN wget -qO- https://deb.nodesource.com/setup_10.x | bash -
 RUN apt-get install -y nodejs
