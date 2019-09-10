@@ -16,8 +16,11 @@ The default port is 9000.
 ```bash
 git clone https://github.com/eadium/chat-api.git
 cd chat-api
-docker-compose up
+docker-compose up --build -d
 ```
+`--build` forces docker to rebuild the code to avoid running outdated versions
+
+`-d` for `detached` mode
 
 ## Testing
 This package includes basic bash tests.
